@@ -1,0 +1,40 @@
+name: build-apk
+
+# 推送到仓库、或手动点击都会自动编译 APK
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 拉取仓库代码
+        uses: actions/checkout@v4
+
+      - name: 解压上传的源码 zip
+        run: unzip -q video-parser-app.zip
+
+      - name: 安装 JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: 安装 Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 安装 Gradle 8.7
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: 编译 debug APK
+        working-directory: video-parser-app
+        run: gradle assembleDebug --no-daemon --stacktrace
+
+      - name: 上传产物（Actions 页面下载）
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-parser-apk
+          path: video-parser-app/app/build/outputs/apk/debug/app-debug.apk
